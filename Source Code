@@ -1,0 +1,24 @@
+import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.functions.explode
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.types.IntegerType
+import org.apache.spark.{SparkConf, SparkContext}
+object ReadNJson {
+  System.setProperty("hadoop.home.dir", "C:\\Users\\kkhede407\\Downloads\\Hadoop\\")
+
+  def main(args : Array[String]): Unit = {
+    var conf = new SparkConf().setAppName("Read Json File").setMaster("local[*]")
+    val sc = new SparkContext(conf)
+    val sqlContext = new SQLContext(sc)
+    import sqlContext.implicits._
+    val dataset = sc.textFile("C:\\Users\\kkhede407\\Downloads\\uber.csv")
+    val header = dataset.first()
+    val format = new java.text.SimpleDateFormat("MM/dd/yyyy")
+    var days =Array("Sun","Mon","Tue","Wed","Thu","Fri","Sat")
+    val eliminate = dataset.filter(line => line != header)
+    val split = eliminate.map(line => line.split(",")).map { x => (x(0),format.parse(x(1)),x(3)) }
+    val combine = split.map(x => (x._1+" "+days(x._2.getDay),x._3.toInt))
+    val arrange = combine.reduceByKey(_+_).map(item => item.swap).sortByKey(false).collect.foreach(println)
+  }
+}
