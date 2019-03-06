@@ -22,3 +22,4 @@ object ReadNJson {
     val arrange = combine.reduceByKey(_+_).map(item => item.swap).sortByKey(false).collect.foreach(println)
   }
 }
+//kk
